@@ -1,0 +1,8 @@
+AddDefaultCharset UTF-8
+php_flag short_open_tags On
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-l
+RewriteRule ^(.*)$ router.php?url=$1 [QSA,L]
+php_flag display_errors on
