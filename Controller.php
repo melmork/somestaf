@@ -16,20 +16,28 @@ class Controller
 
     function add(){
         if (!empty($_POST)){
-            $var = '';
-            $values = '';
-            foreach ($_POST as $key => $value) {
-                $var .= $key . ',';
-                $values .= "'" . $value . "'" . ",";
-            }
-            $var = substr($var, 0, -1);
-            $values = substr($values, 0, -1);
-            $add = new Model();
-            $add->addUser($var, $values);
             $user = new Model();
             $user = $user->getOneUser('email', $_POST['email']);
-            header('Content-type: application/json');
-            echo json_encode($user);
+            if ($user['email']){
+                $err['error'] = 'Такой емеил уже существует';
+                header('Content-type: application/json');
+                echo json_encode($err);
+            } else {
+                $var = '';
+                $values = '';
+                foreach ($_POST as $key => $value) {
+                    $var .= $key . ',';
+                    $values .= "'" . $value . "'" . ",";
+                }
+                $var = substr($var, 0, -1);
+                $values = substr($values, 0, -1);
+                $add = new Model();
+                $add->addUser($var, $values);
+                $user = new Model();
+                $user = $user->getOneUser('email', $_POST['email']);
+                header('Content-type: application/json');
+                echo json_encode($user);
+            }
         }
     }
 
@@ -50,17 +58,25 @@ class Controller
     }
 
     function save($id){
-        $edit = new Model;
-        $request = '';
-        foreach ($_POST as $key => $value) {
-            $request .= $key . "=" . "'" . $value . "'" . ",";
+        $user = new Model();
+        $user = $user->getOneUser('email', $_POST['email']);
+        if ($user['email'] == $_POST['email'] AND $user['id'] != $id){
+            $err['error'] = 'Такой емеил уже существует';
+            header('Content-type: application/json');
+            echo json_encode($err);
+        }else {
+            $edit = new Model;
+            $request = '';
+            foreach ($_POST as $key => $value) {
+                $request .= $key . "=" . "'" . $value . "'" . ",";
+            }
+            $request = substr($request, 0, -1);
+            $edit->editUser($request, $id);
+            $get = new Model;
+            $get = $get->getOneUser('id', $id);
+            header('Content-type: application/json');
+            echo json_encode($get);
         }
-        $request = substr($request, 0, -1);
-        $edit->editUser($request, $id);
-        $get = new Model;
-        $get = $get->getOneUser('id', $id);
-        header('Content-type: application/json');
-        echo json_encode($get);
     }
 
 }

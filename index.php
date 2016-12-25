@@ -57,6 +57,7 @@
                             <div class="form-group">
                                 <label for="email">Email address</label>
                                 <input type="email" class="form-control" id="email" name="email"  placeholder="Email" required>
+                                <span id="error"></span>
                             </div>
                             <input type="submit" class="btn btn-success" value="Add">
                         </form>

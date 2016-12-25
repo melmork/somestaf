@@ -45,6 +45,9 @@ window.adding = function() {
                 console.log('ошибка: ' + (this.status ? this.statusText : 'запрос не удался'));
             } else {
                 var answ = $.parseJSON(xhr.responseText);
+                if (answ['error']){
+                    $('#error').html(answ['error']);
+                } else {
                 var user = "<tr class=\"newd\">" +
                     "<td class=\"firstName\">"+ answ['firstName'] +"</td>" +
                     "<td class=\"secondName\">" + answ['secondName'] +"</td>" +
@@ -56,6 +59,7 @@ window.adding = function() {
                 $('#first-name').val('');
                 $('#second-name').val('');
                 $('#email').val('');
+                }
             }
         }
     }
@@ -109,9 +113,11 @@ $('.table').on('click', '.get', function(e) {
             } else {
                 var answ = $.parseJSON(xhr.responseText);
                 var correcting = "<tr class=\"active1\">"+
-                    "<td><input type=\"text\" id=\"firstName\" value=\""+ answ['firstName'] +"\" class=\"form-control input-sm\"></td>"+
-                    "<td><input type=\"text\" id=\"secondName\" value=\"" + answ['secondName'] +"\" class=\"form-control input-sm\"></td>"+
-                    "<td><input type=\"email\" id=\"email\" value=\""+ answ['email'] +"\" class=\"form-control input-sm\"></td>"+
+                    "<td><input type=\"text\" id=\"firstName\" value=\""+ answ['firstName'] +"\" class=\"form-control input-sm\">" +
+                    "<span id=\"errorf\"></span></td>"+
+                    "<td><input type=\"text\" id=\"secondName\" value=\"" + answ['secondName'] +"\" class=\"form-control input-sm\">" +
+                    "<span id=\"errors\"></span></td>"+
+                    "<td><input type=\"email\" id=\"email\" value=\""+ answ['email'] +"\" class=\"form-control input-sm\"><span id=\"errore\"></span></td>"+
                     "<td><a href=\"/save/"+ answ['id'] +"\" class=\"btn btn-success btn-xs save\">Save</a></td>"+
                     "</tr>";
                     per.after(correcting);
@@ -123,30 +129,76 @@ $('.table').on('click', '.get', function(e) {
 
 $('.table').on('click', '.save', function(e) {
     e.preventDefault();
+    $('#errorf').empty();
+    $('#errors').empty();
+    $('#errore').empty();
     var path = $(this).attr('href');
-    var formData = new FormData();
-    formData.append('firstName', $('#firstName').val());
-    formData.append('secondName', $('#secondName').val());
-    formData.append('email', $('#email').val());
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', path, true);
-    xhr.send(formData);
-    xhr.onreadystatechange = function() {
-        if (this.readyState == 4) {
-            if (this.status != 200) {
-                console.log('ошибка: ' + (this.status ? this.statusText : 'запрос не удался'));
-            } else {
-                var answ = $.parseJSON(xhr.responseText);
-                var user = "<td class=\"firstName\">"+ answ['firstName'] +"</td>" +
-                    "<td class=\"secondName\">" + answ['secondName'] +"</td>" +
-                    "<td class=\"email\">"+ answ['email'] +"</td>" +
-                    "<td><a href=\"/get/"+ answ['id'] +"\" class=\"btn btn-primary btn-xs get\" >Edit</a>"+
-                    "<a href=\"/delete/"+ answ['id'] +"\" class=\"btn btn-danger btn-xs del\">Delete</a></td>";
-                $('#active2').empty().append(user);
-                $(".active1").remove();
+    var firstname = $('#firstName').val();
+    var secondname = $('#secondName').val();
+    var email = $('#email').val();
+    var errors = {};
+    var pattern;
+    if (firstname != ''){
+        pattern = /^[A-Za-zА-Яа-яЁё]+$/i;
+        if(!pattern.test(firstname)){
+            errors['f'] = 'Не верное имя';
+            $('#errorf').html(errors['f']);
+        }
+    } else {
+        errors['f'] = 'Введите имя';
+        $('#errorf').html(errors['f']);
+    }
+    if (secondname != ''){
+        pattern = /^[A-Za-zА-Яа-яЁё]+$/i;
+        if(!pattern.test(secondname)){
+            errors['s'] = 'Не верная фамилия';
+            $('#errors').html(errors['s']);
+        }
+    }else {
+        errors['s'] = 'Введите фамилию';
+        $('#errors').html(errors['s']);
+    }
+    if (email != ''){
+        pattern = /^([a-z0-9_\.-])+@[a-z0-9-]+\.([a-z]{2,4}\.)?[a-z]{2,4}$/i;
+        if(!pattern.test(email)){
+            errors['e'] = 'Не вырный емеил';
+            $('#errore').html(errors['e']);
+        }
+    }else {
+        errors['e'] = 'Введите емеил';
+        $('#errore').html(errors['e']);
+    }
+    if ($.isEmptyObject(errors)){
+        var formData = new FormData();
+        formData.append('firstName', firstname);
+        formData.append('secondName', secondname);
+        formData.append('email', email);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', path, true);
+        xhr.send(formData);
+        xhr.onreadystatechange = function() {
+            if (this.readyState == 4) {
+                if (this.status != 200) {
+                    console.log('ошибка: ' + (this.status ? this.statusText : 'запрос не удался'));
+                } else {
+                    var answ = $.parseJSON(xhr.responseText);
+                    if (answ['error']){
+                        $('#errore').html(answ['error']);
+                    } else {
+                        var user = "<td class=\"firstName\">"+ answ['firstName'] +"</td>" +
+                            "<td class=\"secondName\">" + answ['secondName'] +"</td>" +
+                            "<td class=\"email\">"+ answ['email'] +"</td>" +
+                            "<td><a href=\"/get/"+ answ['id'] +"\" class=\"btn btn-primary btn-xs get\" >Edit</a>"+
+                            "<a href=\"/delete/"+ answ['id'] +"\" class=\"btn btn-danger btn-xs del\">Delete</a></td>";
+                        $('#active2').html(user);
+                        $(".active1").remove();
+                        $(".newd").removeAttr("id");
+                    }
+                }
             }
         }
     }
+
 });
 
 
